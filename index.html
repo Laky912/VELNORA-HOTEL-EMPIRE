@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+  <meta name="theme-color" content="#102a36">
+  <title>VELNORA HOTEL EMPIRE</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main id="game-shell">
+    <div id="world"></div>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="VELNORA Studios"><span class="brand-mark">V</span><span><b>VELNORA</b><small>HOTEL EMPIRE</small></span></a>
+      <div class="resources">
+        <div class="resource"><span class="resource-icon coin">¢</span><div><small>DINERO</small><b id="money">$50</b></div></div>
+        <div class="resource"><span class="resource-icon star">★</span><div><small>REPUTACIÓN</small><b id="rating">1.0</b></div></div>
+        <div class="resource"><span class="resource-icon guest">♙</span><div><small>HUÉSPEDES</small><b id="guests">0 / 2</b></div></div>
+      </div>
+      <button id="pause-btn" class="icon-btn" aria-label="Pausar">Ⅱ</button>
+    </header>
+
+    <aside class="mission-card">
+      <div class="mission-heading"><span class="mission-icon">✦</span><div><small>OBJETIVO ACTUAL</small><b id="mission-title">Abre tu hotel</b></div></div>
+      <p id="mission-desc">Recibe a tus primeros huéspedes y empieza a ganar dinero.</p>
+      <div class="progress-track"><span id="mission-progress"></span></div>
+      <small id="mission-count">0 / 2 huéspedes recibidos</small>
+    </aside>
+
+    <div class="hotel-label"><span class="location-dot"></span><div><b>BRISA MARINA</b><small>HOTEL COSTERO · NIVEL 1</small></div></div>
+
+    <div class="action-hint" id="action-hint"><kbd>E</kbd><span>Interactuar</span></div>
+
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-panel="build"><span>⌂</span><small>Hotel</small></button>
+      <button class="nav-item" data-panel="staff"><span>♙</span><small>Personal</small></button>
+      <button class="nav-item" data-panel="upgrades"><span>↗</span><small>Mejoras</small></button>
+      <button class="nav-item" data-panel="map"><span>▦</span><small>Mapa</small></button>
+    </nav>
+
+    <section class="side-panel" id="side-panel">
+      <div class="panel-top"><div><small id="panel-eyebrow">GESTIÓN DEL HOTEL</small><h2 id="panel-title">Tu hotel</h2></div><button id="close-panel" class="close-btn">×</button></div>
+      <div id="panel-content"></div>
+    </section>
+
+    <div class="toast" id="toast"></div>
+    <div class="modal-backdrop hidden" id="pause-modal">
+      <div class="modal"><span class="modal-symbol">Ⅱ</span><h2>Hotel en pausa</h2><p>Tu imperio puede esperar un momento.</p><button id="resume-btn" class="primary-btn">Continuar jugando</button></div>
+    </div>
+    <div class="controls-tip"><span>WASD</span> Mover <i>·</i> <span>E</span> Interactuar <i>·</i> <span>Rueda</span> Zoom</div>
+  </main>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
