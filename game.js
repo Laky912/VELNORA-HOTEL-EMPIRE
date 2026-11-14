@@ -88,7 +88,7 @@ function beachRock(x,z,scale=1){const rock=new T.Mesh(new T.DodecahedronGeometry
 const clouds=[];
 for(let i=0;i<6;i++){const cloud=new T.Group();cloud.position.set(-25+i*10,10+(i%3)*2,-20-(i%2)*12);scene.add(cloud);for(let j=0;j<4;j++){const puff=sphere(1.35+(j%2)*.35,mat(0xffffff),(j-1.5)*.9,(j%2)*.28,0,cloud);puff.scale.y=.62;}clouds.push(cloud);}
 
-const roomDefs=[{id:0,x:-5,z:-3,open:true,dirty:false,occupied:false,level:1},{id:1,x:0,z:-3,open:false,dirty:false,occupied:false,level:1},{id:2,x:5,z:-3,open:false,dirty:false,occupied:false,level:1},{id:3,x:-5,z:3,open:false,dirty:false,occupied:false,level:1},{id:4,x:0,z:3,open:false,dirty:false,occupied:false,level:1},{id:5,x:5,z:3,open:false,dirty:false,occupied:false,level:1}];
+const roomDefs=[{id:0,x:-5,z:-3,open:true,dirty:false,occupied:false,level:1},{id:1,x:0,z:-3,open:true,dirty:false,occupied:false,level:1},{id:2,x:5,z:-3,open:true,dirty:false,occupied:false,level:1},{id:3,x:-5,z:3,open:false,dirty:false,occupied:false,level:1},{id:4,x:0,z:3,open:false,dirty:false,occupied:false,level:1},{id:5,x:5,z:3,open:false,dirty:false,occupied:false,level:1}];
 const roomObjects=[];
 function decorateRoom(r){
  const x=r.x,z=r.z;
@@ -225,12 +225,12 @@ function person(color){
 const guestColors=[0x5e83b5,0xc87562,0x8a6caa,0x3e9b85,0xd09a4c,0x4f8290,0xb56d91];
 function saveGame(force=false){
  const now=Date.now();if(!force&&now-lastSave<1200)return;lastSave=now;
- try{localStorage.setItem("velnora-hotel-empire-save",JSON.stringify({version:4,cash,received,cleaned,staff,cleaners,receptionists,roomLevel,machineUnlocked,welcomeBonusGranted,keyMap,selectedAvatar,selectedHotelColor,rooms:roomDefs.map(r=>({open:r.open,dirty:r.dirty,level:r.level}))}));}catch(e){}
+ try{localStorage.setItem("velnora-hotel-empire-save",JSON.stringify({version:5,cash,received,cleaned,staff,cleaners,receptionists,roomLevel,machineUnlocked,welcomeBonusGranted,keyMap,selectedAvatar,selectedHotelColor,rooms:roomDefs.map(r=>({open:r.open,dirty:r.dirty,level:r.level}))}));}catch(e){}
 }
 function loadGame(){
- try{const raw=localStorage.getItem("velnora-hotel-empire-save");if(!raw)return;const s=JSON.parse(raw);if(!s||![2,3].includes(s.version))return;
+ try{const raw=localStorage.getItem("velnora-hotel-empire-save");if(!raw)return;const s=JSON.parse(raw);if(!s||![2,3,4,5].includes(s.version))return;
  cash=Math.max(0,Number(s.cash)||50);received=Math.max(0,Number(s.received)||0);cleaned=Math.max(0,Number(s.cleaned)||0);cleaners=Math.max(0,Number(s.cleaners??s.staff)||0);receptionists=Math.max(0,Number(s.receptionists)||0);staff=cleaners+receptionists;roomLevel=Math.max(1,Number(s.roomLevel)||1);machineUnlocked=!!s.machineUnlocked;if(s.keyMap)Object.assign(keyMap,s.keyMap);if(keyMap.up==="w")keyMap.up="q";selectedAvatar=Math.max(0,Math.min(avatarPresets.length-1,Number(s.selectedAvatar)||0));selectedHotelColor=Number(s.selectedHotelColor)||0xd87958;applyAvatar();mats.roof.color.setHex(selectedHotelColor);mats.roof2.color.copy(new T.Color(selectedHotelColor).multiplyScalar(1.16));
- if(Array.isArray(s.rooms))s.rooms.forEach((saved,i)=>{if(roomDefs[i]){roomDefs[i].open=!!saved.open;roomDefs[i].dirty=!!saved.dirty;roomDefs[i].level=Number(saved.level)||1;roomObjects[i].visible=!roomDefs[i].open;if(roomDefs[i].dirty)setDirty(roomDefs[i]);}});
+ if(Array.isArray(s.rooms))s.rooms.forEach((saved,i)=>{if(roomDefs[i]){roomDefs[i].open=!!saved.open;roomDefs[i].dirty=!!saved.dirty;roomDefs[i].level=Number(saved.level)||1;roomObjects[i].visible=!roomDefs[i].open;if(roomDefs[i].dirty)setDirty(roomDefs[i]);}}); roomDefs.slice(0,3).forEach(r=>{r.open=true;roomObjects[r.id].visible=false;});
  machine.visible=machineUnlocked;
  }catch(e){console.warn("No se pudo cargar la partida guardada",e);}
 }
@@ -252,8 +252,9 @@ function spend(n){if(cash<n){toast("No tienes suficiente dinero");return false;}
 document.querySelectorAll(".nav-item").forEach(b=>b.onclick=()=>openPanel(b.dataset.panel));$("close-panel").onclick=()=>ui.panel.classList.remove("open");
 function dist(a,b){return Math.hypot(a.x-b.x,a.z-b.z)}
 function spawnGuest(){
- // La capacidad la determinan las habitaciones libres, no un tope artificial de huéspedes.
- const room=roomDefs.find(r=>r.open&&!r.occupied&&!r.dirty);if(!room)return;
+ // Cada huésped reserva una habitación libre distinta desde que aparece.
+ const freeRooms=roomDefs.filter(r=>r.open&&!r.occupied&&!r.dirty);if(!freeRooms.length)return;
+ const room=freeRooms[Math.floor(Math.random()*freeRooms.length)];
  const g=person(guestColors[Math.floor(Math.random()*guestColors.length)]);
  g.position.set(0,0,15);
  const mood=sphere(.105,mat(0x63c58a),0,2.05,0,g);
@@ -320,7 +321,7 @@ guests.forEach(g=>{
  if(g.mood){const color=g.satisfaction>70?0x63c58a:g.satisfaction>40?0xe8b452:0xd96c62;g.mood.material.color.setHex(color);g.mood.position.y=2.05+Math.sin(elapsed*4+g.wait)*.045;}
 });
 if(cleaners>0&&elapsed%5<dt){let r=roomDefs.find(r=>r.dirty);if(r){r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=15;toast("Limpieza automática · +$15");}}
-if(elapsed>guestTimer){spawnGuest();guestTimer=elapsed+Math.max(5,12-staff);}
+if(elapsed>guestTimer){spawnGuest();guestTimer=elapsed+Math.max(3.5,6.5-staff*.45);}
 if(elapsed>8&&Math.floor(elapsed)%15===0&&Math.floor(elapsed- dt)!==Math.floor(elapsed)){cash+=25;toast("Ingresos del hotel +$25");}
 player.position.y=Math.abs(Math.sin(now*.008))*.035;animateAvatar(player,!!(dx||dz),elapsed);guests.forEach(g=>{if(g.obj){g.obj.position.y=Math.abs(Math.sin(now*.006+g.wait))*.025;animateAvatar(g.obj,["reception","toRoom","toPool","leaving"].includes(g.state),elapsed);if(g.state==="pool"&&g.obj.userData.rig){const rig=g.obj.userData.rig;rig.head.rotation.z=Math.sin(elapsed*1.2+rig.phase)*.035;rig.arms[0].rotation.x=-.22+Math.sin(elapsed*1.5+rig.phase)*.08;rig.arms[1].rotation.x=-.22-Math.sin(elapsed*1.5+rig.phase)*.08;}}});
 if(elapsed-lastHud>1){lastHud=elapsed;updateHUD();}renderer.render(scene,camera);}
