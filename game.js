@@ -35,10 +35,52 @@ const reception=box(3,.95,.8,mats.wood,0,1.05,4.5);box(3,.12,.85,mats.gold,0,1.5
 const machine=box(.7,1.4,.7,mats.teal,7,.95,5);box(.45,.45,.08,mats.gold,7,1.25,4.63);machine.visible=false;
 const roomDefs=[{id:0,x:-5,z:-3,open:true,dirty:false,occupied:false,level:1},{id:1,x:0,z:-3,open:false,dirty:false,occupied:false,level:1},{id:2,x:5,z:-3,open:false,dirty:false,occupied:false,level:1},{id:3,x:-5,z:3,open:false,dirty:false,occupied:false,level:1},{id:4,x:0,z:3,open:false,dirty:false,occupied:false,level:1},{id:5,x:5,z:3,open:false,dirty:false,occupied:false,level:1}];
 const roomObjects=[];
+function decorateRoom(r){
+ const x=r.x,z=r.z;
+ box(.72,.58,.62,mats.wood,x+1.45,.78,z-.75,hotel);
+ box(.76,.08,.66,mats.gold,x+1.45,1.1,z-.75,hotel);
+ cylinder(.1,.1,.34,mats.gold,x+1.45,1.31,z-.75,hotel);
+ sphere(.19,mats.gold,x+1.45,1.52,z-.75,hotel);
+ box(.9,1.45,.22,mats.wood,x-1.55,1.15,z-1.55,hotel);
+ box(.62,.85,.06,mats.blue,x-1.55,1.42,z-1.42,hotel);
+ box(.65,.08,.6,mats.tile,x+1.35,.57,z+1.15,hotel);
+ box(.52,.55,.48,mats.wood,x+1.35,.88,z+1.15,hotel);
+ sphere(.22,mats.leaf,x+1.35,1.28,z+1.15,hotel);
+ box(.9,.12,.55,mats.gold,x-.95,.58,z+1.25,hotel);
+ box(.12,.12,.12,mats.white,x-.95,.72,z+1.25,hotel);
+}
+roomDefs.forEach(decorateRoom);
+for(let i=0;i<3;i++){
+ const x=-5+i*5;
+ box(1.35,.24,.75,mats.teal,x,.62,8.1,scene);
+ box(1.45,.75,.16,mats.wood,x,.98,8.42,scene);
+ box(.14,.65,.72,mats.wood,x-.68,.98,8.1,scene);
+ box(.14,.65,.72,mats.wood,x+.68,.98,8.1,scene);
+}
+box(3.8,.18,.35,mats.wood,0,2.15,-6.72,hotel);
+box(3.3,.55,.16,mats.gold,0,2.5,-6.72,hotel);
+box(.16,.16,.16,mats.white,0,2.5,-6.61,hotel);
+for(let i=0;i<4;i++){
+ const x=-6+i*4;
+ box(.95,.12,.16,mats.white,x,1.95,-6.72,hotel);
+ box(.12,.9,.16,mats.teal,x-.48,2.35,-6.72,hotel);
+ box(.12,.9,.16,mats.teal,x+.48,2.35,-6.72,hotel);
+}
+
 roomDefs.forEach(r=>{const marker=box(2.6,.035,2,mats.grass2,r.x,.52,r.z);marker.visible=!r.open;roomObjects.push(marker);});
 const player=new T.Group();scene.add(player);const body=cylinder(.3,.34,.8,mat(0x286e75),0,.8,0,player);sphere(.28,mat(0xf0bd91),0,1.35,0,player);const hair=sphere(.29,mat(0x493a31),0,1.53,-.04,player);hair.scale.set(1,.5,1);box(.12,.38, .16,mats.white,-.35,.82,0,player);player.position.set(0,0,8);
 const guests=[];let cash=50,received=0,cleaned=0,staff=0,roomLevel=1,paused=false,zoom=1,activeTask=null,toastTimer=0,day=1,guestTimer=2,machineUnlocked=false,lastSave=0,lastHud=0;
-function person(color){let g=new T.Group();let b=cylinder(.27,.32,.72,mat(color),0,.65,0,g);sphere(.23,mat(0xf0bd91),0,1.18,0,g);let h=sphere(.24,mat(0x574238),0,1.33,-.03,g);h.scale.set(1,.5,1);scene.add(g);return g;}
+function person(color){
+ let g=new T.Group();const skin=mat(0xf0bd91),shirt=mat(color),pants=mat(0x354b59),shoe=mat(0x473b35);
+ cylinder(.27,.32,.7,shirt,0,.68,0,g);sphere(.235,skin,0,1.2,0,g);
+ let hair=sphere(.245,mat(0x574238),0,1.36,-.035,g);hair.scale.set(1,.5,1);
+ for(const side of [-1,1]){
+  let arm=cylinder(.085,.095,.48,shirt,side*.34,.72,0,g);arm.rotation.z=side*-.22;
+  cylinder(.09,.09,.43,pants,side*.13,.2,0,g);
+  box(.19,.1,.3,shoe,side*.13,.045,.03,g);
+ }
+ scene.add(g);return g;
+}
 const guestColors=[0x5e83b5,0xc87562,0x8a6caa,0x3e9b85,0xd09a4c];
 function saveGame(force=false){
  const now=Date.now();if(!force&&now-lastSave<1200)return;lastSave=now;
