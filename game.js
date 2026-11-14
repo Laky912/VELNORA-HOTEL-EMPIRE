@@ -217,7 +217,7 @@ guests.forEach(g=>{
   let target={x:0,z:5.6};moveToward(g.obj,target,dt,2.2);
   if(dist(g.obj.position,target)<.5)g.state="waiting";
  }else if(g.state==="waiting"){
-  g.wait+=dt;g.patience-=dt;g.satisfaction=Math.max(35,100-g.wait*1.8);
+  g.wait+=dt;g.patience-=dt;g.satisfaction=Math.max(35,100-g.wait*1.8);g.autoWait=(g.autoWait||0)+dt;if(receptionists>0&&g.autoWait>=Math.max(1.5,4.5-receptionists*.6))registerGuest(g,true);
   if(g.patience<=0){g.state="leaving";g.room.occupied=false;g.satisfaction=25;toast("Un huésped se cansó de esperar");}
  }else if(g.state==="toRoom"){
   moveToward(g.obj,{x:g.room.x,z:g.room.z},dt,2.4);
@@ -234,7 +234,7 @@ guests.forEach(g=>{
  }
  if(g.mood){const color=g.satisfaction>70?0x63c58a:g.satisfaction>40?0xe8b452:0xd96c62;g.mood.material.color.setHex(color);g.mood.position.y=2.05+Math.sin(elapsed*4+g.wait)*.045;}
 });
-if(staff>0&&elapsed%3<dt){let r=roomDefs.find(r=>r.dirty);if(r){r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=8;}}
+if(cleaners>0&&elapsed%5<dt){let r=roomDefs.find(r=>r.dirty);if(r){r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=8;toast("Limpieza automática · +$8");}}
 if(elapsed>guestTimer){spawnGuest();guestTimer=elapsed+Math.max(5,12-staff);}
 if(elapsed>8&&Math.floor(elapsed)%15===0&&Math.floor(elapsed- dt)!==Math.floor(elapsed)){cash+=5;toast("Ingresos del hotel +$5");}
 player.position.y=Math.abs(Math.sin(now*.008))*.035;animateAvatar(player,!!(dx||dz),elapsed);guests.forEach(g=>{if(g.obj){g.obj.position.y=Math.abs(Math.sin(now*.006+g.wait))*.025;animateAvatar(g.obj,["reception","toRoom","leaving"].includes(g.state),elapsed);}});
