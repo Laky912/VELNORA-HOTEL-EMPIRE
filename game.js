@@ -141,41 +141,38 @@ const avatarSettings={skin:0xf0bd91,shirt:0x286e75,pants:0x354b59,hair:0x493a31,
 function buildAvatar(root,config=avatarSettings){
  root.clear();root.userData.rig=null;
  const skin=mat(config.skin),shirt=mat(config.shirt),pants=mat(config.pants),shoe=mat(config.shoes||0x473b35),hairMat=mat(config.hair),dark=mat(0x26343b),white=mat(0xffffff);
- // Silueta caricaturesca con articulaciones independientes para caminar.
- cylinder(.29,.34,.72,shirt,0,.72,0,root);
+ const torso=cylinder(.29,.34,.72,shirt,0,.72,0,root);
  // Uniforme con cuello, botones, cinturón y mangas con volumen.
- const torsoTrim=mat(config.trim||0xf0d18b), collar=box(.22,.075,.19,white,0,1.075,.08,root);collar.rotation.x=-.12;
+ const torsoTrim=mat(config.trim||0xf0d18b),collar=box(.22,.075,.19,white,0,1.075,.08,root);collar.rotation.x=-.12;
  box(.045,.29,.035,torsoTrim,0,.79,.302,root);
  for(let b=0;b<3;b++)sphere(.027,torsoTrim,0,.88-b*.105,.325,root);
- box(.34,.09,.37,dark,0,.43,.015,root);
- box(.12,.075,.045,torsoTrim,0,.43,.22,root);
- for(const side of [-1,1]){const sleeve=cylinder(.105,.09,.22,shirt,side*.36,.88,0,root);sleeve.rotation.z=side*.22;box(.19,.055,.2,torsoTrim,side*.36,.78,.015,root);}
-
+ box(.34,.09,.37,dark,0,.43,.015,root);box(.12,.075,.045,torsoTrim,0,.43,.22,root);
  const neck=cylinder(.09,.1,.16,skin,0,1.12,0,root);
  const head=new T.Group();head.position.set(0,1.29,0);root.add(head);
  sphere(.255,skin,0,0,0,head);
  sphere(.258,hairMat,0,.18,-.035,head).scale.set(1,.48,1.04);
- // Mechones y volumen de peinado más natural.
  for(let n=0;n<5;n++){const strand=sphere(.07,hairMat,-.16+n*.08,.235,.08,head);strand.scale.set(.8,1.35,.75);}
-
  if(config.style==="long"){
   box(.13,.43,.22,hairMat,-.21,-.08,-.015,head);box(.13,.43,.22,hairMat,.21,-.08,-.015,head);
  }else if(config.style==="curly"){
-  for(let n=0;n<9;n++){const a=n*Math.PI*2/9;sphere(.105,hairMat,Math.cos(a)*.19,.18,Math.sin(a)*.16-.025,head);}
+  for(let n=0;n<9;n++){const angle=n*Math.PI*2/9;sphere(.105,hairMat,Math.cos(angle)*.19,.18,Math.sin(angle)*.16-.025,head);}
  }
- // Cara visible desde el frente: ojos, cejas, nariz y sonrisa.
+ const eyes=[];
  for(const side of [-1,1]){
-  sphere(.047,white,side*.092,.015,.218,head);sphere(.022,dark,side*.092,.015,.255,head);
+  sphere(.052,skin,side*.246,-.015,0,head);
+  const eye=sphere(.047,white,side*.092,.015,.218,head);eyes.push(eye);
+  sphere(.022,dark,side*.092,.015,.255,head);
   const brow=box(.085,.025,.025,hairMat,side*.092,.095,.22,head);brow.rotation.z=side*-.12;
  }
  sphere(.035,skin,0,-.045,.25,head);
  const smile=new T.Mesh(new T.TorusGeometry(.065,.012,5,14,Math.PI),mat(0x8b4d4b));smile.position.set(0,-.105,.224);smile.rotation.z=Math.PI;head.add(smile);
- // Mochila pequeña y detalles de uniforme visibles desde varios ángulos.
  if(config.accessory==="backpack"){box(.34,.42,.16,mat(0x9b6948),0,.78,-.23,root);box(.2,.12,.18,mat(0xe4b45c),0,.72,-.33,root);}
- const arms=[],legs=[];
+ const arms=[],legs=[],hands=[];
  for(const side of [-1,1]){
   const arm=new T.Group();arm.position.set(side*.34,.99,0);root.add(arm);
-  cylinder(.09,.085,.43,shirt,0,-.22,0,arm);sphere(.085,skin,0,-.47,.015,arm);arms.push(arm);
+  cylinder(.09,.085,.43,shirt,0,-.22,0,arm);
+  const hand=sphere(.085,skin,0,-.47,.015,arm);hands.push(hand);arms.push(arm);
+  const cuff=cylinder(.088,.088,.075,torsoTrim,0,-.39,0,arm);cuff.position.y=-.39;
   const leg=new T.Group();leg.position.set(side*.14,.42,0);root.add(leg);
   cylinder(.095,.09,.39,pants,0,-.2,0,leg);box(.2,.11,.31,shoe,0,-.42,.075,leg);legs.push(leg);
  }
@@ -186,16 +183,22 @@ function buildAvatar(root,config=avatarSettings){
  }else if(config.accessory==="cap"){
   const brim=box(.38,.045,.22,hairMat,0,.17,.16,head);brim.rotation.x=-.08;
  }
- root.userData.rig={arms,legs,head,phase:Math.random()*Math.PI*2};
+ root.userData.rig={arms,legs,hands,head,eyes,torso,phase:Math.random()*Math.PI*2};
 }
 function animateAvatar(root,moving,time){
  const rig=root.userData.rig;if(!rig)return;
- const swing=moving?Math.sin(time*11+rig.phase)*.62:Math.sin(time*2+rig.phase)*.035;
+ const phase=rig.phase,swing=moving?Math.sin(time*11+phase)*.62:Math.sin(time*2+phase)*.035;
  rig.legs[0].rotation.x=swing;rig.legs[1].rotation.x=-swing;
  rig.arms[0].rotation.x=-swing*.78;rig.arms[1].rotation.x=swing*.78;
- rig.head.rotation.z=moving?Math.sin(time*5+rig.phase)*.025:Math.sin(time*1.5+rig.phase)*.018;
-}
-buildAvatar(player);
+ rig.arms[0].rotation.z=moving?-.045:0;rig.arms[1].rotation.z=moving?.045:0;
+ rig.hands[0].rotation.x=Math.sin(time*11+phase)*.12;rig.hands[1].rotation.x=-Math.sin(time*11+phase)*.12;
+ rig.head.rotation.z=moving?Math.sin(time*5+phase)*.025:Math.sin(time*1.5+phase)*.018;
+ rig.head.rotation.x=moving?Math.sin(time*11+phase)*.018:Math.sin(time*1.7+phase)*.012;
+ rig.torso.scale.y=1+(moving?Math.abs(Math.sin(time*11+phase))*.018:Math.sin(time*2+phase)*.006);
+ // Parpadeo breve y natural, desfasado entre personajes.
+ const blink=Math.max(0,1-Math.abs((time+phase*.37)%4.2-2.1)/.11);
+ rig.eyes.forEach(eye=>{eye.scale.y=1-blink*.88;});
+}buildAvatar(player);
 const guests=[];let cash=50,received=0,cleaned=0,staff=0,cleaners=0,receptionists=0,roomLevel=1,paused=false,zoom=1,activeTask=null,toastTimer=0,day=1,guestTimer=2,machineUnlocked=false,lastSave=0,lastHud=0;
 const keyMap={up:"q",down:"s",left:"a",right:"d",interact:"e"};
 let waitingForKey=null;
