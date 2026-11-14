@@ -235,14 +235,39 @@ const guestColors=[0x5e83b5,0xc87562,0x8a6caa,0x3e9b85,0xd09a4c,0x4f8290,0xb56d9
  assistantSign.position.set(0,2.55,0);assistantSign.scale.set(2.45,.62,1);assistantNpc.add(assistantSign);
  const assistantReceptionActive=true;
 function saveGame(force=false){
- const now=Date.now();if(!force&&now-lastSave<1200)return;lastSave=now;
- try{localStorage.setItem("velnora-hotel-empire-save",JSON.stringify({version:5,cash,received,cleaned,staff,cleaners,receptionists,roomLevel,machineUnlocked,welcomeBonusGranted,keyMap,selectedAvatar,selectedHotelColor,rooms:roomDefs.map(r=>({open:r.open,dirty:r.dirty,level:r.level}))}));}catch(e){}
+ const now=Date.now();if(!force&&now-lastSave<1200)return;
+ try{
+  const data={version:6,cash,received,cleaned,staff,cleaners,receptionists,roomLevel,machineUnlocked,welcomeBonusGranted,keyMap,selectedAvatar,selectedHotelColor,player:{x:player.position.x,z:player.position.z,speed:player.userData.speed||4.5,tip:player.userData.tip||2},day,guestTimerRemaining:Math.max(1,guestTimer-elapsed),rooms:roomDefs.map(r=>({open:r.open,dirty:r.dirty,level:r.level})),guests:guests.filter(g=>g.state!=="left").map(g=>({state:g.state,roomId:g.room.id,x:g.obj.position.x,z:g.obj.position.z,wait:g.wait||0,patience:g.patience||0,satisfaction:g.satisfaction??100,stay:g.stay||35,autoWait:g.autoWait||0,poolDuration:g.poolDuration||0,poolSpot:g.poolSpot||null}))};
+  localStorage.setItem("velnora-hotel-empire-save",JSON.stringify(data));lastSave=now;return true;
+ }catch(e){console.warn("No se pudo guardar la partida. Comprueba el almacenamiento del navegador.",e);return false;}
 }
+window.addEventListener("pagehide",()=>saveGame(true));
+window.addEventListener("beforeunload",()=>saveGame(true));
+document.addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden")saveGame(true);});
 function loadGame(){
- try{const raw=localStorage.getItem("velnora-hotel-empire-save");if(!raw)return;const s=JSON.parse(raw);if(!s||![2,3,4,5].includes(s.version))return;
- cash=Math.max(0,Number(s.cash)||50);received=Math.max(0,Number(s.received)||0);cleaned=Math.max(0,Number(s.cleaned)||0);cleaners=Math.max(0,Number(s.cleaners??s.staff)||0);receptionists=Math.max(0,Number(s.receptionists)||0);staff=cleaners+receptionists;roomLevel=Math.max(1,Number(s.roomLevel)||1);machineUnlocked=!!s.machineUnlocked;if(s.keyMap)Object.assign(keyMap,s.keyMap);if(keyMap.up==="w")keyMap.up="q";selectedAvatar=Math.max(0,Math.min(avatarPresets.length-1,Number(s.selectedAvatar)||0));selectedHotelColor=Number(s.selectedHotelColor)||0xd87958;applyAvatar();mats.roof.color.setHex(selectedHotelColor);mats.roof2.color.copy(new T.Color(selectedHotelColor).multiplyScalar(1.16));
- if(Array.isArray(s.rooms))s.rooms.forEach((saved,i)=>{if(roomDefs[i]){roomDefs[i].open=!!saved.open;roomDefs[i].dirty=!!saved.dirty;roomDefs[i].level=Number(saved.level)||1;roomObjects[i].visible=!roomDefs[i].open;if(roomDefs[i].dirty)setDirty(roomDefs[i]);}}); roomDefs.slice(0,3).forEach(r=>{r.open=true;roomObjects[r.id].visible=false;});
- machine.visible=machineUnlocked;
+ try{
+  const raw=localStorage.getItem("velnora-hotel-empire-save");if(!raw)return;
+  const s=JSON.parse(raw);if(!s||![2,3,4,5,6].includes(s.version))return;
+  cash=Math.max(0,Number(s.cash??50));received=Math.max(0,Number(s.received)||0);cleaned=Math.max(0,Number(s.cleaned)||0);cleaners=Math.max(0,Number(s.cleaners??s.staff)||0);receptionists=Math.max(0,Number(s.receptionists)||0);staff=cleaners+receptionists;roomLevel=Math.max(1,Number(s.roomLevel)||1);machineUnlocked=!!s.machineUnlocked;
+  if(s.keyMap)Object.assign(keyMap,s.keyMap);if(keyMap.up==="w")keyMap.up="q";
+  selectedAvatar=Math.max(0,Math.min(avatarPresets.length-1,Number(s.selectedAvatar)||0));selectedHotelColor=Number(s.selectedHotelColor)||0xd87958;day=Math.max(1,Number(s.day)||1);
+  applyAvatar();mats.roof.color.setHex(selectedHotelColor);mats.roof2.color.copy(new T.Color(selectedHotelColor).multiplyScalar(1.16));
+  if(Array.isArray(s.rooms))s.rooms.forEach((saved,i)=>{if(roomDefs[i]){roomDefs[i].open=!!saved.open;roomDefs[i].dirty=!!saved.dirty;roomDefs[i].level=Number(saved.level)||1;roomObjects[i].visible=!roomDefs[i].open;if(roomDefs[i].dirty)setDirty(roomDefs[i]);}});
+  roomDefs.slice(0,3).forEach(r=>{r.open=true;roomObjects[r.id].visible=false;});
+  if(s.player){player.position.x=Math.max(-13,Math.min(13,Number(s.player.x)||0));player.position.z=Math.max(-13,Math.min(16,Number(s.player.z)||8));player.userData.speed=Math.max(2,Math.min(12,Number(s.player.speed)||4.5));player.userData.tip=Math.max(0,Number(s.player.tip)||2);}
+  if(Number.isFinite(s.guestTimerRemaining))guestTimer=Math.max(1,s.guestTimerRemaining);
+  machine.visible=machineUnlocked;
+  if(Array.isArray(s.guests)&&s.version>=6){
+   roomDefs.forEach(r=>{r.occupied=false;r.userGuest=null;});
+   s.guests.forEach(saved=>{
+    const room=roomDefs.find(r=>r.id===saved.roomId);if(!room||!room.open||room.dirty)return;
+    const obj=person(guestColors[Math.floor(Math.random()*guestColors.length)]);obj.position.set(Number(saved.x)||0,0,Number(saved.z)||15);
+    const mood=sphere(.105,mat(0x63c58a),0,2.05,0,obj);room.occupied=true;
+    const guest={obj,state:saved.state,room,wait:Number(saved.wait)||0,patience:Number(saved.patience)||26,satisfaction:Number(saved.satisfaction)||100,stay:Number(saved.stay)||35,autoWait:Number(saved.autoWait)||0,poolDuration:Number(saved.poolDuration)||0,poolSpot:saved.poolSpot||null,mood};
+    guests.push(guest);if(["room","toRoom","toPool","pool"].includes(guest.state))room.userGuest=guest;
+   });
+  }
+  lastSave=Date.now();
  }catch(e){console.warn("No se pudo cargar la partida guardada",e);}
 }
 function applyAvatar(){const p=avatarPresets[selectedAvatar];Object.assign(avatarSettings,p);buildAvatar(player);updateControlHints();}
