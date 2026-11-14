@@ -197,14 +197,11 @@ function spawnGuest(){
  guests.push({obj:g,state:"reception",room,wait:0,patience:26+Math.random()*10,satisfaction:100,stay:30+Math.random()*18,mood});
 }
 function setDirty(r){r.dirty=true;r.occupied=false;const stain=sphere(.18,mat(0xb98a63),r.x,.67,r.z,hotel);stain.scale.set(2,.15,1.4);r.stain=stain;}
+function registerGuest(guest,automatic=false){if(!guest||!["reception","waiting"].includes(guest.state))return false;guest.state="toRoom";guest.wait=0;guest.autoWait=0;guest.room.occupied=true;guest.room.userGuest=guest;guest.satisfaction=Math.max(55,guest.satisfaction);cash+=20;received++;toast(automatic?"Recepción automática · huésped registrado · +$20":"Huésped registrado · +$20");updateHUD();return true;}
 function interact(){
- if(activeTask==="reception"){
-  let guest=guests.find(g=>g.state==="reception"||g.state==="waiting");
-  if(guest){guest.state="toRoom";guest.wait=0;guest.room.occupied=true;guest.room.userGuest=guest;guest.satisfaction=Math.max(55,guest.satisfaction);cash+=20;received++;toast("Huésped registrado · +$20");updateHUD();}
- }else if(activeTask&&activeTask.type==="dirty"){
-  let r=activeTask.room;r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}
-  cash+=5+(player.userData.tip||2);toast("Habitación limpia · +$"+(5+(player.userData.tip||2)));updateHUD();
- }else if(activeTask==="cash"){cash+=25;toast("¡Has recogido $25!");activeTask=null;updateHUD();}
+ if(activeTask==="reception"){let guest=guests.find(g=>g.state==="reception"||g.state==="waiting");if(guest)registerGuest(guest,false);}
+ else if(activeTask&&activeTask.type==="dirty"){let r=activeTask.room;r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=5+(player.userData.tip||2);toast("Habitación limpia · +$"+(5+(player.userData.tip||2)));updateHUD();}
+ else if(activeTask==="cash"){cash+=25;toast("¡Has recogido $25!");activeTask=null;updateHUD();}
 }
 function getTask(){let nearReception=dist(player.position,{x:0,z:5})<2.4;if(nearReception&&guests.some(g=>g.state==="reception"||g.state==="waiting"))return "reception";let dirty=roomDefs.find(r=>r.dirty&&dist(player.position,{x:r.x,z:r.z})<2.3);if(dirty)return{type:"dirty",room:dirty};return null;}
 const keys={};window.addEventListener("keydown",e=>{const pressed=e.key.toLowerCase();if(waitingForKey){if(pressed.length===1||pressed.startsWith("arrow")){const conflict=Object.keys(keyMap).find(k=>k!==waitingForKey&&keyMap[k]===pressed);if(conflict){toast("Esa tecla ya está asignada");return;}keyMap[waitingForKey]=pressed;waitingForKey=null;saveGame(true);updateControlHints();openPanel("customize");toast("Tecla asignada");}e.preventDefault();return;}keys[pressed]=true;if(pressed===keyMap.interact&&!e.repeat)interact();if(["arrowup","arrowdown","arrowleft","arrowright"," "].includes(pressed))e.preventDefault();});window.addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
