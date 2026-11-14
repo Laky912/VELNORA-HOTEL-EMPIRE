@@ -199,7 +199,7 @@ function animateAvatar(root,moving,time){
  const blink=Math.max(0,1-Math.abs((time+phase*.37)%4.2-2.1)/.11);
  rig.eyes.forEach(eye=>{eye.scale.y=1-blink*.88;});
 }buildAvatar(player);
-const guests=[];let cash=50,received=0,cleaned=0,staff=0,cleaners=0,receptionists=0,roomLevel=1,paused=false,zoom=1,activeTask=null,toastTimer=0,day=1,guestTimer=2,machineUnlocked=false,lastSave=0,lastHud=0;
+const guests=[];let cash=5000,received=0,cleaned=0,staff=0,cleaners=0,receptionists=0,roomLevel=1,paused=false,zoom=1,activeTask=null,toastTimer=0,day=1,guestTimer=2,machineUnlocked=false,lastSave=0,lastHud=0,welcomeBonusGranted=true;
 const keyMap={up:"q",down:"s",left:"a",right:"d",interact:"e"};
 let waitingForKey=null;
 const avatarPresets=[
@@ -225,7 +225,7 @@ function person(color){
 const guestColors=[0x5e83b5,0xc87562,0x8a6caa,0x3e9b85,0xd09a4c,0x4f8290,0xb56d91];
 function saveGame(force=false){
  const now=Date.now();if(!force&&now-lastSave<1200)return;lastSave=now;
- try{localStorage.setItem("velnora-hotel-empire-save",JSON.stringify({version:3,cash,received,cleaned,staff,cleaners,receptionists,roomLevel,machineUnlocked,keyMap,selectedAvatar,selectedHotelColor,rooms:roomDefs.map(r=>({open:r.open,dirty:r.dirty,level:r.level}))}));}catch(e){}
+ try{localStorage.setItem("velnora-hotel-empire-save",JSON.stringify({version:4,cash,received,cleaned,staff,cleaners,receptionists,roomLevel,machineUnlocked,welcomeBonusGranted,keyMap,selectedAvatar,selectedHotelColor,rooms:roomDefs.map(r=>({open:r.open,dirty:r.dirty,level:r.level}))}));}catch(e){}
 }
 function loadGame(){
  try{const raw=localStorage.getItem("velnora-hotel-empire-save");if(!raw)return;const s=JSON.parse(raw);if(!s||![2,3].includes(s.version))return;
@@ -261,10 +261,10 @@ function spawnGuest(){
  guests.push({obj:g,state:"reception",room,wait:0,patience:26+Math.random()*10,satisfaction:100,stay:30+Math.random()*18,mood});
 }
 function setDirty(r){r.dirty=true;r.occupied=false;const stain=sphere(.18,mat(0xb98a63),r.x,.67,r.z,hotel);stain.scale.set(2,.15,1.4);r.stain=stain;}
-function registerGuest(guest,automatic=false){if(!guest||!["reception","waiting"].includes(guest.state))return false;guest.state="toRoom";guest.wait=0;guest.autoWait=0;guest.room.occupied=true;guest.room.userGuest=guest;guest.satisfaction=Math.max(55,guest.satisfaction);cash+=20;received++;toast(automatic?"Recepción automática · huésped registrado · +$20":"Huésped registrado · +$20");updateHUD();return true;}
+function registerGuest(guest,automatic=false){if(!guest||!["reception","waiting"].includes(guest.state))return false;guest.state="toRoom";guest.wait=0;guest.autoWait=0;guest.room.occupied=true;guest.room.userGuest=guest;guest.satisfaction=Math.max(55,guest.satisfaction);cash+=100;received++;toast(automatic?"Recepción automática · huésped registrado · +$100":"Huésped registrado · +$100");updateHUD();return true;}
 function interact(){
  if(activeTask==="reception"){let guest=guests.find(g=>g.state==="reception"||g.state==="waiting");if(guest)registerGuest(guest,false);}
- else if(activeTask&&activeTask.type==="dirty"){let r=activeTask.room;r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=5+(player.userData.tip||2);toast("Habitación limpia · +$"+(5+(player.userData.tip||2)));updateHUD();}
+ else if(activeTask&&activeTask.type==="dirty"){let r=activeTask.room;r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=15+(player.userData.tip||2);toast("Habitación limpia · +$"+(15+(player.userData.tip||2)));updateHUD();}
  else if(activeTask==="cash"){cash+=25;toast("¡Has recogido $25!");activeTask=null;updateHUD();}
 }
 function getTask(){let nearReception=dist(player.position,{x:0,z:7.7})<2.6;if(nearReception&&guests.some(g=>g.state==="reception"||g.state==="waiting"))return "reception";let dirty=roomDefs.find(r=>r.dirty&&dist(player.position,{x:r.x,z:r.z})<2.3);if(dirty)return{type:"dirty",room:dirty};return null;}
@@ -313,15 +313,15 @@ guests.forEach(g=>{
  }else if(g.state==="leaving"){
   moveToward(g.obj,{x:0,z:15},dt,2.5);
   if(g.obj.position.z>14){
-   if(g.satisfaction>35){const tip=Math.round(5+g.satisfaction*.12);cash+=tip;toast("Salida de huésped · propina +$"+tip);}
+   if(g.satisfaction>35){const tip=Math.round(25+g.satisfaction*.5);cash+=tip;toast("Salida de huésped · propina +$"+tip);}
    g.state="left";scene.remove(g.obj);
   }
  }
  if(g.mood){const color=g.satisfaction>70?0x63c58a:g.satisfaction>40?0xe8b452:0xd96c62;g.mood.material.color.setHex(color);g.mood.position.y=2.05+Math.sin(elapsed*4+g.wait)*.045;}
 });
-if(cleaners>0&&elapsed%5<dt){let r=roomDefs.find(r=>r.dirty);if(r){r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=8;toast("Limpieza automática · +$8");}}
+if(cleaners>0&&elapsed%5<dt){let r=roomDefs.find(r=>r.dirty);if(r){r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=15;toast("Limpieza automática · +$15");}}
 if(elapsed>guestTimer){spawnGuest();guestTimer=elapsed+Math.max(5,12-staff);}
-if(elapsed>8&&Math.floor(elapsed)%15===0&&Math.floor(elapsed- dt)!==Math.floor(elapsed)){cash+=5;toast("Ingresos del hotel +$5");}
+if(elapsed>8&&Math.floor(elapsed)%15===0&&Math.floor(elapsed- dt)!==Math.floor(elapsed)){cash+=25;toast("Ingresos del hotel +$25");}
 player.position.y=Math.abs(Math.sin(now*.008))*.035;animateAvatar(player,!!(dx||dz),elapsed);guests.forEach(g=>{if(g.obj){g.obj.position.y=Math.abs(Math.sin(now*.006+g.wait))*.025;animateAvatar(g.obj,["reception","toRoom","toPool","leaving"].includes(g.state),elapsed);if(g.state==="pool"&&g.obj.userData.rig){const rig=g.obj.userData.rig;rig.head.rotation.z=Math.sin(elapsed*1.2+rig.phase)*.035;rig.arms[0].rotation.x=-.22+Math.sin(elapsed*1.5+rig.phase)*.08;rig.arms[1].rotation.x=-.22-Math.sin(elapsed*1.5+rig.phase)*.08;}}});
 if(elapsed-lastHud>1){lastHud=elapsed;updateHUD();}renderer.render(scene,camera);}
 function createTouchControls(){
