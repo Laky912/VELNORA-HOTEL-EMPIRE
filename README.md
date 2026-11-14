@@ -56,3 +56,7 @@ The project studies the broad idle-management loop and colorful 3D presentation 
 - **S:** move backward
 - **A / D:** move left / right
 - **E:** interact
+
+
+## Guest behavior update
+- Guests now visit the pool after their stay, relax briefly, recover satisfaction, then check out and leave the room ready for cleaning.
