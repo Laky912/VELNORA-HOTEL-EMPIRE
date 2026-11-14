@@ -105,6 +105,19 @@ function decorateRoom(r){
  box(.12,.12,.12,mats.white,x-.95,.72,z+1.25,hotel);
 }
 roomDefs.forEach(decorateRoom);
+ // Interiores acogedores: alfombras, lámparas de mesa, cuadros y pequeños baños.
+ const rugMat=mat(0xb8a0a0),frameMat=mat(0x9c7446),bathMat=mat(0x9ed7d5),ceramic=mat(0xf8f4e8);
+ roomDefs.forEach((r,i)=>{
+  box(1.55,.035,1.05,rugMat,r.x-.25,.535,r.z+.15,hotel);
+  box(.5,.58,.5,ceramic,r.x-1.55,.83,r.z+1.25,hotel);
+  box(.38,.08,.38,bathMat,r.x-1.55,1.14,r.z+1.25,hotel);
+  box(.42,.22,.5,ceramic,r.x-1.55,.65,r.z+1.8,hotel);
+  box(.62,.78,.08,frameMat,r.x-.1,1.45,r.z-2.12,hotel);
+  box(.48,.62,.025,mat([0x7ab8b1,0xe6b879,0x8ba6c7][i%3]),r.x-.1,1.45,r.z-2.065,hotel);
+  // Lámpara cálida en la mesita.
+  sphere(.11,mat(0xffe6a5),r.x+1.45,1.48,r.z-.75,hotel);
+ });
+
 for(let i=0;i<3;i++){
  const x=-5+i*5;
  box(1.35,.24,.75,mats.teal,x,.62,8.1,scene);
@@ -130,10 +143,21 @@ function buildAvatar(root,config=avatarSettings){
  const skin=mat(config.skin),shirt=mat(config.shirt),pants=mat(config.pants),shoe=mat(config.shoes||0x473b35),hairMat=mat(config.hair),dark=mat(0x26343b),white=mat(0xffffff);
  // Silueta caricaturesca con articulaciones independientes para caminar.
  cylinder(.29,.34,.72,shirt,0,.72,0,root);
+ // Uniforme con cuello, botones, cinturón y mangas con volumen.
+ const torsoTrim=mat(config.trim||0xf0d18b), collar=box(.22,.075,.19,white,0,1.075,.08,root);collar.rotation.x=-.12;
+ box(.045,.29,.035,torsoTrim,0,.79,.302,root);
+ for(let b=0;b<3;b++)sphere(.027,torsoTrim,0,.88-b*.105,.325,root);
+ box(.34,.09,.37,dark,0,.43,.015,root);
+ box(.12,.075,.045,torsoTrim,0,.43,.22,root);
+ for(const side of [-1,1]){const sleeve=cylinder(.105,.09,.22,shirt,side*.36,.88,0,root);sleeve.rotation.z=side*.22;box(.19,.055,.2,torsoTrim,side*.36,.78,.015,root);}
+
  const neck=cylinder(.09,.1,.16,skin,0,1.12,0,root);
  const head=new T.Group();head.position.set(0,1.29,0);root.add(head);
  sphere(.255,skin,0,0,0,head);
  sphere(.258,hairMat,0,.18,-.035,head).scale.set(1,.48,1.04);
+ // Mechones y volumen de peinado más natural.
+ for(let n=0;n<5;n++){const strand=sphere(.07,hairMat,-.16+n*.08,.235,.08,head);strand.scale.set(.8,1.35,.75);}
+
  if(config.style==="long"){
   box(.13,.43,.22,hairMat,-.21,-.08,-.015,head);box(.13,.43,.22,hairMat,.21,-.08,-.015,head);
  }else if(config.style==="curly"){
@@ -146,6 +170,8 @@ function buildAvatar(root,config=avatarSettings){
  }
  sphere(.035,skin,0,-.045,.25,head);
  const smile=new T.Mesh(new T.TorusGeometry(.065,.012,5,14,Math.PI),mat(0x8b4d4b));smile.position.set(0,-.105,.224);smile.rotation.z=Math.PI;head.add(smile);
+ // Mochila pequeña y detalles de uniforme visibles desde varios ángulos.
+ if(config.accessory==="backpack"){box(.34,.42,.16,mat(0x9b6948),0,.78,-.23,root);box(.2,.12,.18,mat(0xe4b45c),0,.72,-.33,root);}
  const arms=[],legs=[];
  for(const side of [-1,1]){
   const arm=new T.Group();arm.position.set(side*.34,.99,0);root.add(arm);
