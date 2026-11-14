@@ -229,7 +229,7 @@ const guestColors=[0x5e83b5,0xc87562,0x8a6caa,0x3e9b85,0xd09a4c,0x4f8290,0xb56d9
  const assistantSignCanvas=document.createElement("canvas");assistantSignCanvas.width=512;assistantSignCanvas.height=128;
  const assistantSignCtx=assistantSignCanvas.getContext("2d");assistantSignCtx.fillStyle="#173c48";assistantSignCtx.fillRect(0,0,512,128);
  assistantSignCtx.strokeStyle="#e9bd68";assistantSignCtx.lineWidth=7;assistantSignCtx.strokeRect(7,7,498,114);
- assistantSignCtx.fillStyle="#fff1d7";assistantSignCtx.font="bold 48px Arial";assistantSignCtx.textAlign="center";assistantSignCtx.textBaseline="middle";assistantSignCtx.fillText("CHATGPT · RECEPCIÓN",256,64);
+ assistantSignCtx.fillStyle="#fff1d7";assistantSignCtx.font="bold 48px Arial";assistantSignCtx.textAlign="center";assistantSignCtx.textBaseline="middle";assistantSignCtx.fillText("ELENA · RECEPCIÓN",256,64);
  const assistantSignTexture=new T.CanvasTexture(assistantSignCanvas);assistantSignTexture.colorSpace=T.SRGBColorSpace;
  const assistantSign=new T.Sprite(new T.SpriteMaterial({map:assistantSignTexture,transparent:true,depthWrite:false}));
  assistantSign.position.set(0,2.55,0);assistantSign.scale.set(2.45,.62,1);assistantNpc.add(assistantSign);
