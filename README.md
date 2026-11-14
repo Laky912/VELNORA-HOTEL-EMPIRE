@@ -13,10 +13,10 @@ Open `index.html` in a modern browser with an internet connection. The game load
 - **Bottom navigation:** hotel construction, staff, upgrades and destinations
 
 ## Current prototype
-- Isometric 3D coastal hotel scene with original procedural low-poly geometry
+- Expanded isometric 3D coastal resort with beach paths, loungers, umbrellas, lamps, flowerbeds, palms, facade windows and entrance awning
 - Controllable hotel worker and animated guests with expanded character models
 - Furnished guest rooms with bedside furniture, lamps, wardrobes and decor
-- Reception check-in, room occupancy, checkout and cleaning loop
+- Reception check-in, guest movement from reception to assigned rooms, checkout, room reservation and cleaning loop
 - Money, reputation, guest count and mission HUD
 - Room unlocking, vending machine, pool upgrade and staff hiring
 - Movement, room quality and tip upgrades
@@ -27,7 +27,7 @@ Open `index.html` in a modern browser with an internet connection. The game load
 The project studies the broad idle-management loop and colorful 3D presentation of casual hotel simulators such as *My Perfect Hotel*. All game code, names, scene composition and procedural assets here are original VELNORA work; it does not use extracted game assets or copied proprietary files.
 
 ## Next production milestones
-1. Guest needs, queues, room service and staff AI with pathfinding.
+1. Guest needs, queues, room service and staff AI with collision-aware pathfinding.
 2. More detailed room interiors, animation sets and facility interactions.
 3. Additional facilities, hotel destinations and long-term progression.
 4. Audio, settings, tutorial and performance testing across browsers and devices.
