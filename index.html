@@ -39,6 +39,7 @@
       <button class="nav-item" data-panel="staff"><span>♙</span><small>Personal</small></button>
       <button class="nav-item" data-panel="upgrades"><span>↗</span><small>Mejoras</small></button>
       <button class="nav-item" data-panel="map"><span>▦</span><small>Mapa</small></button>
+      <button class="nav-item" data-panel="customize"><span>✦</span><small>Estilo</small></button>
     </nav>
 
     <section class="side-panel" id="side-panel">
@@ -50,7 +51,7 @@
     <div class="modal-backdrop hidden" id="pause-modal">
       <div class="modal"><span class="modal-symbol">Ⅱ</span><h2>Hotel en pausa</h2><p>Tu imperio puede esperar un momento.</p><button id="resume-btn" class="primary-btn">Continuar jugando</button></div>
     </div>
-    <div class="controls-tip"><span>WASD</span> Mover <i>·</i> <span>E</span> Interactuar <i>·</i> <span>Rueda</span> Zoom</div>
+    <div class="controls-tip"><span id="move-keys">WASD</span> Mover <i>·</i> <span id="interact-key">E</span> Interactuar <i>·</i> <span>Rueda</span> Zoom</div>
   </main>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.min.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js'"></script>
   <script src="game.js"></script>
