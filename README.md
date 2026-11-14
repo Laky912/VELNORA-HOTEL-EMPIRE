@@ -15,7 +15,7 @@ Open `index.html` in a modern browser with an internet connection. The game load
 ## Current prototype
 - Expanded isometric 3D coastal resort with beach paths, loungers, umbrellas, lamps, flowerbeds, palms, facade windows and entrance awning
 - Controllable hotel worker and animated guests with original procedural 3D characters, expressive faces, varied skin tones, hairstyles, uniforms and optional glasses/caps
-- Articulated arms and legs with lightweight walking cycles, plus subtle idle head movement
+- Articulated arms, legs and hands with improved walking cycles, shoulder movement, head motion and natural blinking
 - Furnished guest rooms with bedside furniture, lamps, wardrobes and decor
 - Reception check-in, guest movement from reception to assigned rooms, checkout, room reservation and cleaning loop
 - Guest patience and satisfaction: waiting too long makes visitors leave unhappy; happy guests leave better tips
