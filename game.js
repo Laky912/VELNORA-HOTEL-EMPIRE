@@ -223,6 +223,17 @@ function person(color){
  buildAvatar(g,{...look,shirt:color,badge:Math.random()>.7});scene.add(g);return g;
 }
 const guestColors=[0x5e83b5,0xc87562,0x8a6caa,0x3e9b85,0xd09a4c,0x4f8290,0xb56d91];
+ // NPC especial de recepción: asistente virtual del hotel, inspirada en ChatGPT.
+ const assistantNpc=new T.Group();scene.add(assistantNpc);assistantNpc.position.set(-2.25,0,4.95);assistantNpc.rotation.y=Math.PI;
+ buildAvatar(assistantNpc,{skin:0xf0bd91,shirt:0x267f83,pants:0x344b5c,hair:0x493a31,style:"long",badge:true,accessory:"glasses",trim:0xf0d18b});
+ const assistantSignCanvas=document.createElement("canvas");assistantSignCanvas.width=512;assistantSignCanvas.height=128;
+ const assistantSignCtx=assistantSignCanvas.getContext("2d");assistantSignCtx.fillStyle="#173c48";assistantSignCtx.fillRect(0,0,512,128);
+ assistantSignCtx.strokeStyle="#e9bd68";assistantSignCtx.lineWidth=7;assistantSignCtx.strokeRect(7,7,498,114);
+ assistantSignCtx.fillStyle="#fff1d7";assistantSignCtx.font="bold 48px Arial";assistantSignCtx.textAlign="center";assistantSignCtx.textBaseline="middle";assistantSignCtx.fillText("CHATGPT · RECEPCIÓN",256,64);
+ const assistantSignTexture=new T.CanvasTexture(assistantSignCanvas);assistantSignTexture.colorSpace=T.SRGBColorSpace;
+ const assistantSign=new T.Sprite(new T.SpriteMaterial({map:assistantSignTexture,transparent:true,depthWrite:false}));
+ assistantSign.position.set(0,2.55,0);assistantSign.scale.set(2.45,.62,1);assistantNpc.add(assistantSign);
+ const assistantReceptionActive=true;
 function saveGame(force=false){
  const now=Date.now();if(!force&&now-lastSave<1200)return;lastSave=now;
  try{localStorage.setItem("velnora-hotel-empire-save",JSON.stringify({version:5,cash,received,cleaned,staff,cleaners,receptionists,roomLevel,machineUnlocked,welcomeBonusGranted,keyMap,selectedAvatar,selectedHotelColor,rooms:roomDefs.map(r=>({open:r.open,dirty:r.dirty,level:r.level}))}));}catch(e){}
@@ -288,7 +299,7 @@ guests.forEach(g=>{
   if(queueIndex===0&&dist(g.obj.position,target)<.38)g.state="waiting";
   if(g.state==="waiting"){
    g.wait+=dt;g.patience-=dt;g.satisfaction=Math.max(35,100-g.wait*1.8);g.autoWait=(g.autoWait||0)+dt;
-   if(receptionists>0&&g.autoWait>=Math.max(1.5,4.5-receptionists*.6))registerGuest(g,true);
+   if((assistantReceptionActive||receptionists>0)&&g.autoWait>=Math.max(1.8,assistantReceptionActive?2.8:4.5-receptionists*.6))registerGuest(g,true);
    if(g.patience<=0){g.state="leaving";g.room.occupied=false;g.satisfaction=25;toast("Un huésped se cansó de esperar");}
   }
  }else if(g.state==="toRoom"){
@@ -323,7 +334,7 @@ guests.forEach(g=>{
 if(cleaners>0&&elapsed%5<dt){let r=roomDefs.find(r=>r.dirty);if(r){r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=15;toast("Limpieza automática · +$15");}}
 if(elapsed>guestTimer){spawnGuest();guestTimer=elapsed+Math.max(3.5,6.5-staff*.45);}
 if(elapsed>8&&Math.floor(elapsed)%15===0&&Math.floor(elapsed- dt)!==Math.floor(elapsed)){cash+=25;toast("Ingresos del hotel +$25");}
-player.position.y=Math.abs(Math.sin(now*.008))*.035;animateAvatar(player,!!(dx||dz),elapsed);guests.forEach(g=>{if(g.obj){g.obj.position.y=Math.abs(Math.sin(now*.006+g.wait))*.025;animateAvatar(g.obj,["reception","toRoom","toPool","leaving"].includes(g.state),elapsed);if(g.state==="pool"&&g.obj.userData.rig){const rig=g.obj.userData.rig;rig.head.rotation.z=Math.sin(elapsed*1.2+rig.phase)*.035;rig.arms[0].rotation.x=-.22+Math.sin(elapsed*1.5+rig.phase)*.08;rig.arms[1].rotation.x=-.22-Math.sin(elapsed*1.5+rig.phase)*.08;}}});
+player.position.y=Math.abs(Math.sin(now*.008))*.035;animateAvatar(player,!!(dx||dz),elapsed);animateAvatar(assistantNpc,false,elapsed+1.7);assistantSign.position.y=2.55+Math.sin(elapsed*2)*.035;guests.forEach(g=>{if(g.obj){g.obj.position.y=Math.abs(Math.sin(now*.006+g.wait))*.025;animateAvatar(g.obj,["reception","toRoom","toPool","leaving"].includes(g.state),elapsed);if(g.state==="pool"&&g.obj.userData.rig){const rig=g.obj.userData.rig;rig.head.rotation.z=Math.sin(elapsed*1.2+rig.phase)*.035;rig.arms[0].rotation.x=-.22+Math.sin(elapsed*1.5+rig.phase)*.08;rig.arms[1].rotation.x=-.22-Math.sin(elapsed*1.5+rig.phase)*.08;}}});
 if(elapsed-lastHud>1){lastHud=elapsed;updateHUD();}renderer.render(scene,camera);}
 function createTouchControls(){
  if(!("ontouchstart" in window)||window.innerWidth>900)return;
