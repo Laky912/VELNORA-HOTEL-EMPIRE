@@ -8,24 +8,26 @@ Open `index.html` in a modern browser with an internet connection. The game load
 ## Controls
 - **WASD / Arrow keys:** move your hotel worker
 - **E:** interact at reception or clean a dirty room
+- **Touch controls:** on-screen movement pad and action button on supported mobile devices
 - **Mouse wheel:** zoom
 - **Bottom navigation:** hotel construction, staff, upgrades and destinations
 
 ## Current prototype
 - Isometric 3D coastal hotel scene with original procedural low-poly geometry
-- Controllable hotel worker and animated guests
+- Controllable hotel worker and animated guests with expanded character models
+- Furnished guest rooms with bedside furniture, lamps, wardrobes and decor
 - Reception check-in, room occupancy, checkout and cleaning loop
 - Money, reputation, guest count and mission HUD
 - Room unlocking, vending machine, pool upgrade and staff hiring
 - Movement, room quality and tip upgrades
-- Persistent local save for cash, unlocked rooms, staff and core upgrades
+- Versioned local save for cash, unlocked rooms, staff, facilities and room state
+- Responsive on-screen touch controls for mobile
 
 ## Design direction
-The project studies the broad idle-management loop and readable, colorful 3D presentation of casual hotel simulators such as *My Perfect Hotel*. All game code, names, scene composition and procedural assets here are original VELNORA work; it does not use extracted game assets or copied proprietary files.
+The project studies the broad idle-management loop and colorful 3D presentation of casual hotel simulators such as *My Perfect Hotel*. All game code, names, scene composition and procedural assets here are original VELNORA work; it does not use extracted game assets or copied proprietary files.
 
 ## Next production milestones
-1. Persistent save data and full tutorial.
-2. Guest needs, queues, room service and staff AI with pathfinding.
-3. Furnished room interiors and more detailed character models/animations.
-4. Additional facilities, hotel destinations and long-term progression.
-5. Audio, settings, responsive touch controls and performance testing.
+1. Guest needs, queues, room service and staff AI with pathfinding.
+2. More detailed room interiors, animation sets and facility interactions.
+3. Additional facilities, hotel destinations and long-term progression.
+4. Audio, settings, tutorial and performance testing across browsers and devices.
