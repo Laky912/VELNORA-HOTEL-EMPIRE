@@ -135,7 +135,7 @@ function animateAvatar(root,moving,time){
  rig.head.rotation.z=moving?Math.sin(time*5+rig.phase)*.025:Math.sin(time*1.5+rig.phase)*.018;
 }
 buildAvatar(player);
-const guests=[];let cash=50,received=0,cleaned=0,staff=0,roomLevel=1,paused=false,zoom=1,activeTask=null,toastTimer=0,day=1,guestTimer=2,machineUnlocked=false,lastSave=0,lastHud=0;
+const guests=[];let cash=50,received=0,cleaned=0,staff=0,cleaners=0,receptionists=0,roomLevel=1,paused=false,zoom=1,activeTask=null,toastTimer=0,day=1,guestTimer=2,machineUnlocked=false,lastSave=0,lastHud=0;
 const keyMap={up:"w",down:"s",left:"a",right:"d",interact:"e"};
 let waitingForKey=null;
 const avatarPresets=[
@@ -161,11 +161,11 @@ function person(color){
 const guestColors=[0x5e83b5,0xc87562,0x8a6caa,0x3e9b85,0xd09a4c,0x4f8290,0xb56d91];
 function saveGame(force=false){
  const now=Date.now();if(!force&&now-lastSave<1200)return;lastSave=now;
- try{localStorage.setItem("velnora-hotel-empire-save",JSON.stringify({version:2,cash,received,cleaned,staff,roomLevel,machineUnlocked,keyMap,selectedAvatar,selectedHotelColor,rooms:roomDefs.map(r=>({open:r.open,dirty:r.dirty,level:r.level}))}));}catch(e){}
+ try{localStorage.setItem("velnora-hotel-empire-save",JSON.stringify({version:3,cash,received,cleaned,staff,cleaners,receptionists,roomLevel,machineUnlocked,keyMap,selectedAvatar,selectedHotelColor,rooms:roomDefs.map(r=>({open:r.open,dirty:r.dirty,level:r.level}))}));}catch(e){}
 }
 function loadGame(){
- try{const raw=localStorage.getItem("velnora-hotel-empire-save");if(!raw)return;const s=JSON.parse(raw);if(!s||s.version!==2)return;
- cash=Math.max(0,Number(s.cash)||50);received=Math.max(0,Number(s.received)||0);cleaned=Math.max(0,Number(s.cleaned)||0);staff=Math.max(0,Number(s.staff)||0);roomLevel=Math.max(1,Number(s.roomLevel)||1);machineUnlocked=!!s.machineUnlocked;if(s.keyMap)Object.assign(keyMap,s.keyMap);selectedAvatar=Math.max(0,Math.min(avatarPresets.length-1,Number(s.selectedAvatar)||0));selectedHotelColor=Number(s.selectedHotelColor)||0xd87958;applyAvatar();mats.roof.color.setHex(selectedHotelColor);mats.roof2.color.copy(new T.Color(selectedHotelColor).multiplyScalar(1.16));
+ try{const raw=localStorage.getItem("velnora-hotel-empire-save");if(!raw)return;const s=JSON.parse(raw);if(!s||![2,3].includes(s.version))return;
+ cash=Math.max(0,Number(s.cash)||50);received=Math.max(0,Number(s.received)||0);cleaned=Math.max(0,Number(s.cleaned)||0);cleaners=Math.max(0,Number(s.cleaners??s.staff)||0);receptionists=Math.max(0,Number(s.receptionists)||0);staff=cleaners+receptionists;roomLevel=Math.max(1,Number(s.roomLevel)||1);machineUnlocked=!!s.machineUnlocked;if(s.keyMap)Object.assign(keyMap,s.keyMap);selectedAvatar=Math.max(0,Math.min(avatarPresets.length-1,Number(s.selectedAvatar)||0));selectedHotelColor=Number(s.selectedHotelColor)||0xd87958;applyAvatar();mats.roof.color.setHex(selectedHotelColor);mats.roof2.color.copy(new T.Color(selectedHotelColor).multiplyScalar(1.16));
  if(Array.isArray(s.rooms))s.rooms.forEach((saved,i)=>{if(roomDefs[i]){roomDefs[i].open=!!saved.open;roomDefs[i].dirty=!!saved.dirty;roomDefs[i].level=Number(saved.level)||1;roomObjects[i].visible=!roomDefs[i].open;if(roomDefs[i].dirty)setDirty(roomDefs[i]);}});
  machine.visible=machineUnlocked;
  }catch(e){console.warn("No se pudo cargar la partida guardada",e);}
