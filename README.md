@@ -34,3 +34,11 @@ The project studies the broad idle-management loop and colorful 3D presentation 
 2. More detailed room interiors, animation sets and facility interactions.
 3. Additional facilities, hotel destinations and long-term progression.
 4. Audio, settings, tutorial and performance testing across browsers and devices.
+
+
+## Personal con funciones reales
+- Los limpiadores y recepcionistas se contratan y contabilizan por separado.
+- Los limpiadores preparan automáticamente habitaciones sucias y generan un pequeño ingreso por servicio.
+- Los recepcionistas registran automáticamente a los huéspedes después de un breve tiempo de espera; cuantos más contrates, más rápido atienden.
+- El coste de contratación aumenta progresivamente para equilibrar la economía.
+- El guardado ahora usa la versión 3 e incluye los dos tipos de empleado. Las partidas anteriores se conservan y su personal existente se convierte en limpiadores.
