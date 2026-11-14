@@ -18,6 +18,8 @@ Open `index.html` in a modern browser with an internet connection. The game load
 - Articulated arms and legs with lightweight walking cycles, plus subtle idle head movement
 - Furnished guest rooms with bedside furniture, lamps, wardrobes and decor
 - Reception check-in, guest movement from reception to assigned rooms, checkout, room reservation and cleaning loop
+- Guest patience and satisfaction: waiting too long makes visitors leave unhappy; happy guests leave better tips
+- Floating mood indicators above guests that shift from green to amber or red as service quality changes
 - Money, reputation, guest count and mission HUD
 - Room unlocking, vending machine, pool upgrade and staff hiring
 - Movement, room quality and tip upgrades
