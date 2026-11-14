@@ -8,11 +8,30 @@ const camera=new T.OrthographicCamera(-15,15,10,-10,.1,100);camera.position.set(
 let renderer;try{renderer=new T.WebGLRenderer({antialias:true,alpha:false,powerPreference:"high-performance"});}catch(err){$("world").innerHTML='<div style="position:absolute;inset:20%;display:grid;place-items:center;text-align:center;color:#17313b;font-weight:700">Tu navegador no pudo iniciar WebGL. Activa la aceleración por hardware y vuelve a cargar el juego.</div>';return;}renderer.setPixelRatio(Math.min(devicePixelRatio,1.5));renderer.shadowMap.enabled=true;renderer.shadowMap.type=T.PCFSoftShadowMap;renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;$("world").appendChild(renderer.domElement);
 scene.add(new T.HemisphereLight(0xe8fbff,0x758b67,2.1));const sun=new T.DirectionalLight(0xfff1d5,2.8);sun.position.set(-12,22,10);sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.shadow.camera.left=-24;sun.shadow.camera.right=24;sun.shadow.camera.top=24;sun.shadow.camera.bottom=-24;scene.add(sun);
 const mats={grass:mat(0x7eae79),grass2:mat(0x91bd82),sand:mat(0xe7d19c),water:mat(0x56b9ca,.8),wood:mat(0x9a6949),wood2:mat(0xc18b5d),wall:mat(0xfff1d7),roof:mat(0xd87958),roof2:mat(0xe7a75f),tile:mat(0xe5d9bf),white:mat(0xfffbeb),teal:mat(0x45aa9a),dark:mat(0x36545a),leaf:mat(0x4e946b),leaf2:mat(0x78ad70),bed:mat(0xf3e8d6),blue:mat(0x79c2cf),gold:mat(0xe8b452)};
+function surfaceTexture(kind,repeatX=3,repeatY=3){
+ const c=document.createElement("canvas");c.width=128;c.height=128;const ctx=c.getContext("2d"),img=ctx.createImageData(128,128);
+ let seed=kind.split("").reduce((a,ch)=>a+ch.charCodeAt(0),73);const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+ for(let i=0;i<img.data.length;i+=4){let n=kind==="wood"?218+Math.floor(rnd()*36):kind==="grass"?220+Math.floor(rnd()*35):kind==="sand"?224+Math.floor(rnd()*31):kind==="roof"?216+Math.floor(rnd()*39):229+Math.floor(rnd()*26);img.data[i]=n;img.data[i+1]=n;img.data[i+2]=n;img.data[i+3]=255;}
+ ctx.putImageData(img,0,0);
+ if(kind==="wood"){for(let y=4;y<128;y+=13){ctx.fillStyle="rgba(80,45,24,.10)";ctx.fillRect(0,y,128,2);ctx.fillStyle="rgba(255,255,255,.12)";ctx.fillRect(0,y+3,128,1);}}
+ if(kind==="tile"||kind==="roof"){ctx.strokeStyle="rgba(95,72,56,.16)";ctx.lineWidth=2;for(let y=0;y<128;y+=32){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(128,y);ctx.stroke();}for(let x=0;x<128;x+=32){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,128);ctx.stroke();}}
+ if(kind==="grass"||kind==="sand"){for(let i=0;i<240;i++){ctx.fillStyle=kind==="grass"?"rgba(56,105,52,.13)":"rgba(155,126,77,.10)";ctx.beginPath();ctx.arc(rnd()*128,rnd()*128,kind==="grass"?1+rnd()*2:.6+rnd()*1.2,0,Math.PI*2);ctx.fill();}}
+ if(kind==="wall"){for(let i=0;i<90;i++){ctx.fillStyle="rgba(160,130,100,.08)";ctx.fillRect(rnd()*128,rnd()*128,1+rnd()*3,1+rnd()*2);}}
+ const tex=new T.CanvasTexture(c);tex.colorSpace=T.SRGBColorSpace;tex.wrapS=tex.wrapT=T.RepeatWrapping;tex.repeat.set(repeatX,repeatY);tex.anisotropy=Math.min(8,renderer.capabilities.getMaxAnisotropy());return tex;
+}
+for(const [material,kind,rx,ry] of [[mats.grass,"grass",5,5],[mats.grass2,"grass",4,4],[mats.sand,"sand",4,4],[mats.wood,"wood",2,2],[mats.wood2,"wood",2,2],[mats.wall,"wall",3,2],[mats.roof,"roof",3,3],[mats.roof2,"roof",3,3],[mats.tile,"tile",4,4]]){material.map=surfaceTexture(kind,rx,ry);material.needsUpdate=true;}
+mats.water=new T.MeshPhysicalMaterial({color:0x55b9ca,roughness:.23,metalness:.08,clearcoat:.85,clearcoatRoughness:.18});
+
 function mat(color,roughness=.86){return new T.MeshStandardMaterial({color,roughness});}
 function box(w,h,d,m,x,y,z,parent=scene){const o=new T.Mesh(new T.BoxGeometry(w,h,d),m);o.position.set(x,y,z);o.castShadow=true;o.receiveShadow=true;parent.add(o);return o;}
 function sphere(r,m,x,y,z,parent=scene){const o=new T.Mesh(new T.SphereGeometry(r,12,10),m);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o;}
 function cylinder(rt,rb,h,m,x,y,z,parent=scene){const o=new T.Mesh(new T.CylinderGeometry(rt,rb,h,8),m);o.position.set(x,y,z);o.castShadow=true;parent.add(o);return o;}
 const ground=box(46,.5,42,mats.grass,0,-.45,0);const water=box(100,.2,100,mats.water,0,-1.0,0);water.receiveShadow=true;
+const oceanGeo=new T.PlaneGeometry(140,140,56,56);oceanGeo.rotateX(-Math.PI/2);
+const oceanMat=new T.MeshPhysicalMaterial({color:0x42aebf,roughness:.24,metalness:.1,clearcoat:.8,clearcoatRoughness:.2});
+const ocean=new T.Mesh(oceanGeo,oceanMat);ocean.position.y=-.205;ocean.receiveShadow=true;scene.add(ocean);
+const oceanBase=oceanGeo.attributes.position.array.slice();
+
 const island=box(31,.45,25,mats.sand,0,-.12,0);box(27,.25,21,mats.grass,0,.18,0);
 for(let i=0;i<42;i++){let x=(Math.random()-.5)*39,z=(Math.random()-.5)*34;if(Math.abs(x)<14&&Math.abs(z)<10)continue;let palm=new T.Group();palm.position.set(x,0,z);scene.add(palm);cylinder(.12,.2,1.2,mats.wood,0,0.8,0,palm);for(let j=0;j<5;j++){let leaf=box(.18,.08,1.25,mats.leaf,0,1.48,0,palm);leaf.rotation.y=j*Math.PI*2/5;leaf.rotation.x=-.25;} }
 const hotel=new T.Group();scene.add(hotel);
@@ -52,6 +71,15 @@ box(4.2,.22,.9,mats.roof2,0,2.05,6.45,hotel);
 for(let i=0;i<5;i++)box(.72,.08,.12,mats.white,-1.45+i*.72,1.88,6.85,hotel);
 function palm(x,z,scale=1){const g=new T.Group();g.position.set(x,0,z);g.scale.setScalar(scale);decor.add(g);cylinder(.12,.2,1.9,mats.wood,0,.95,0,g);for(let j=0;j<7;j++){const leaf=box(.16,.09,1.55,mats.leaf,0,1.9,0,g);leaf.rotation.y=j*Math.PI*2/7;leaf.rotation.x=-.3;}}
 palm(-13,9,.9);palm(14,-8,1.05);palm(-13,-8,.85);
+function tropicalBush(x,z,scale=1){const g=new T.Group();g.position.set(x,.15,z);g.scale.setScalar(scale);decor.add(g);sphere(.48,mats.leaf,0,.42,0,g);sphere(.34,mats.leaf2,-.28,.55,.08,g);sphere(.36,mats.leaf,.25,.58,-.08,g);for(let i=0;i<3;i++)sphere(.105,i===1?flowerA:flowerB,-.2+i*.2,.82,(i%2)*.15,g);}
+for(const [x,z,k] of [[-14,4,1.1],[-14,-3,.85],[14,3,1.05],[14,-3,.9],[-9,10,.8],[8,-10,.9],[-8,-10,.75],[5,10,.75]])tropicalBush(x,z,k);
+function beachRock(x,z,scale=1){const rock=new T.Mesh(new T.DodecahedronGeometry(.45*scale,0),mat(0xb8b7a5));rock.position.set(x,.15,z);rock.scale.y=.55;rock.castShadow=true;decor.add(rock);}
+[[-15,0],[-14,7],[14,0],[15,7],[-7,11],[7,-11]].forEach(p=>beachRock(p[0],p[1],.7+Math.random()*.45));
+
+
+
+const clouds=[];
+for(let i=0;i<6;i++){const cloud=new T.Group();cloud.position.set(-25+i*10,10+(i%3)*2,-20-(i%2)*12);scene.add(cloud);for(let j=0;j<4;j++){const puff=sphere(1.35+(j%2)*.35,mat(0xffffff),(j-1.5)*.9,(j%2)*.28,0,cloud);puff.scale.y=.62;}clouds.push(cloud);}
 
 const roomDefs=[{id:0,x:-5,z:-3,open:true,dirty:false,occupied:false,level:1},{id:1,x:0,z:-3,open:false,dirty:false,occupied:false,level:1},{id:2,x:5,z:-3,open:false,dirty:false,occupied:false,level:1},{id:3,x:-5,z:3,open:false,dirty:false,occupied:false,level:1},{id:4,x:0,z:3,open:false,dirty:false,occupied:false,level:1},{id:5,x:5,z:3,open:false,dirty:false,occupied:false,level:1}];
 const roomObjects=[];
@@ -136,7 +164,7 @@ function animateAvatar(root,moving,time){
 }
 buildAvatar(player);
 const guests=[];let cash=50,received=0,cleaned=0,staff=0,cleaners=0,receptionists=0,roomLevel=1,paused=false,zoom=1,activeTask=null,toastTimer=0,day=1,guestTimer=2,machineUnlocked=false,lastSave=0,lastHud=0;
-const keyMap={up:"w",down:"s",left:"a",right:"d",interact:"e"};
+const keyMap={up:"q",down:"s",left:"a",right:"d",interact:"e"};
 let waitingForKey=null;
 const avatarPresets=[
  {name:"Recepcionista",shirt:0x286e75,hair:0x493a31,skin:0xf0bd91,style:"short",accessory:"glasses"},
@@ -165,7 +193,7 @@ function saveGame(force=false){
 }
 function loadGame(){
  try{const raw=localStorage.getItem("velnora-hotel-empire-save");if(!raw)return;const s=JSON.parse(raw);if(!s||![2,3].includes(s.version))return;
- cash=Math.max(0,Number(s.cash)||50);received=Math.max(0,Number(s.received)||0);cleaned=Math.max(0,Number(s.cleaned)||0);cleaners=Math.max(0,Number(s.cleaners??s.staff)||0);receptionists=Math.max(0,Number(s.receptionists)||0);staff=cleaners+receptionists;roomLevel=Math.max(1,Number(s.roomLevel)||1);machineUnlocked=!!s.machineUnlocked;if(s.keyMap)Object.assign(keyMap,s.keyMap);selectedAvatar=Math.max(0,Math.min(avatarPresets.length-1,Number(s.selectedAvatar)||0));selectedHotelColor=Number(s.selectedHotelColor)||0xd87958;applyAvatar();mats.roof.color.setHex(selectedHotelColor);mats.roof2.color.copy(new T.Color(selectedHotelColor).multiplyScalar(1.16));
+ cash=Math.max(0,Number(s.cash)||50);received=Math.max(0,Number(s.received)||0);cleaned=Math.max(0,Number(s.cleaned)||0);cleaners=Math.max(0,Number(s.cleaners??s.staff)||0);receptionists=Math.max(0,Number(s.receptionists)||0);staff=cleaners+receptionists;roomLevel=Math.max(1,Number(s.roomLevel)||1);machineUnlocked=!!s.machineUnlocked;if(s.keyMap)Object.assign(keyMap,s.keyMap);if(keyMap.up==="w")keyMap.up="q";selectedAvatar=Math.max(0,Math.min(avatarPresets.length-1,Number(s.selectedAvatar)||0));selectedHotelColor=Number(s.selectedHotelColor)||0xd87958;applyAvatar();mats.roof.color.setHex(selectedHotelColor);mats.roof2.color.copy(new T.Color(selectedHotelColor).multiplyScalar(1.16));
  if(Array.isArray(s.rooms))s.rooms.forEach((saved,i)=>{if(roomDefs[i]){roomDefs[i].open=!!saved.open;roomDefs[i].dirty=!!saved.dirty;roomDefs[i].level=Number(saved.level)||1;roomObjects[i].visible=!roomDefs[i].open;if(roomDefs[i].dirty)setDirty(roomDefs[i]);}});
  machine.visible=machineUnlocked;
  }catch(e){console.warn("No se pudo cargar la partida guardada",e);}
@@ -210,6 +238,7 @@ function resize(){let w=$("world").clientWidth,h=$("world").clientHeight;rendere
 window.addEventListener("resize",resize);resize();
 let last=performance.now(),elapsed=0;
 function loop(now){requestAnimationFrame(loop);let dt=Math.min(.04,(now-last)/1000);last=now;if(paused)return;elapsed+=dt;
+const wavePos=oceanGeo.attributes.position;for(let i=0;i<wavePos.count;i++){const x=oceanBase[i*3],z=oceanBase[i*3+2];wavePos.array[i*3+1]=oceanBase[i*3+1]+Math.sin(x*.19+elapsed*1.25)*.045+Math.cos(z*.16+elapsed*.9)*.035;}wavePos.needsUpdate=true;oceanGeo.computeVertexNormals();clouds.forEach((c,i)=>{c.position.x+=dt*(.12+i*.012);if(c.position.x>32)c.position.x=-32;});
 const held=k=>!!keys[keyMap[k]];let dx=(held("right")?1:0)-(held("left")?1:0),dz=(held("down")?1:0)-(held("up")?1:0);if(dx||dz){let l=Math.hypot(dx,dz);dx/=l;dz/=l;let speed=player.userData.speed||4.5;player.position.x+=dx*speed*dt;player.position.z+=dz*speed*dt;player.rotation.y=Math.atan2(dx,dz);}player.position.x=Math.max(-13,Math.min(13,player.position.x));player.position.z=Math.max(-13,Math.min(16,player.position.z));
 activeTask=getTask();ui.hint.classList.toggle("visible",!!activeTask);if(activeTask==="reception")ui.hint.innerHTML="<kbd>E</kbd><span>Registrar huésped</span>";else if(activeTask&&activeTask.type==="dirty")ui.hint.innerHTML="<kbd>E</kbd><span>Limpiar habitación</span>";
 guests.forEach(g=>{
