@@ -6,7 +6,7 @@ A browser-based 3D hotel management prototype by VELNORA Studios.
 Open `index.html` in a modern browser with an internet connection. The game loads Three.js and web fonts from CDNs.
 
 ## Controls
-- **WASD / Arrow keys:** move your hotel worker
+- **QASD / Arrow keys:** move your hotel worker (Q moves forward; controls can be remapped)
 - **E:** interact at reception or clean a dirty room
 - **Touch controls:** on-screen movement pad and action button on supported mobile devices
 - **Mouse wheel:** zoom
@@ -42,3 +42,17 @@ The project studies the broad idle-management loop and colorful 3D presentation 
 - Los recepcionistas registran automáticamente a los huéspedes después de un breve tiempo de espera; cuantos más contrates, más rápido atienden.
 - El coste de contratación aumenta progresivamente para equilibrar la economía.
 - El guardado ahora usa la versión 3 e incluye los dos tipos de empleado. Las partidas anteriores se conservan y su personal existente se convierte en limpiadores.
+
+
+## Visual upgrade
+- Procedural high-resolution surface textures for grass, sand, wood, plaster, roof tiles and floor tiles.
+- Reflective physical-material ocean with animated wave deformation, plus drifting cloud clusters.
+- Denser tropical landscaping with shrubs, flowers and beach rocks.
+- Refined directional lighting, shadow bias and fill light.
+- Custom hotel entrance with glass double doors, gold trim, columns and a branded BRISA MARINA sign.
+
+## Updated keyboard defaults
+- **Q:** move forward
+- **S:** move backward
+- **A / D:** move left / right
+- **E:** interact
