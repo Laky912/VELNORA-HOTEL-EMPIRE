@@ -264,7 +264,7 @@ function loadGame(){
     const obj=person(guestColors[Math.floor(Math.random()*guestColors.length)]);obj.position.set(Number(saved.x)||0,0,Number(saved.z)||15);
     const mood=sphere(.105,mat(0x63c58a),0,2.05,0,obj);room.occupied=true;
     const guest={obj,state:saved.state,room,wait:Number(saved.wait)||0,patience:Number(saved.patience)||26,satisfaction:Number(saved.satisfaction)||100,stay:Number(saved.stay)||35,autoWait:Number(saved.autoWait)||0,poolDuration:Number(saved.poolDuration)||0,poolSpot:saved.poolSpot||null,mood};
-    guests.push(guest);if(["room","toRoom","toPool","pool"].includes(guest.state))room.userGuest=guest;
+    guests.push(guest);if(guest.state!=="leaving")room.occupied=true;if(["room","toRoom","toPool","pool"].includes(guest.state))room.userGuest=guest;
    });
   }
   lastSave=Date.now();
