@@ -289,7 +289,21 @@ guests.forEach(g=>{
   if(dist(g.obj.position,{x:g.room.x,z:g.room.z})<.35){g.state="room";g.wait=0;}
  }else if(g.state==="room"){
   g.wait+=dt;
-  if(g.wait>g.stay){g.state="leaving";g.room.occupied=false;g.room.dirty=true;setDirty(g.room);}
+  if(g.wait>g.stay){
+   if(Math.random()<.72){
+    g.state="toPool";g.wait=0;
+    const spots=[{x:9.6,z:5.25},{x:11.7,z:5.35},{x:13.5,z:5.15}];
+    g.poolSpot=spots[Math.floor(Math.random()*spots.length)];
+   }else{
+    g.state="leaving";g.room.occupied=false;g.room.dirty=true;setDirty(g.room);
+   }
+  }
+ }else if(g.state==="toPool"){
+  moveToward(g.obj,g.poolSpot,dt,1.9);
+  if(dist(g.obj.position,g.poolSpot)<.28){g.state="pool";g.wait=0;g.poolDuration=9+Math.random()*9;g.obj.rotation.y=Math.PI;}
+ }else if(g.state==="pool"){
+  g.wait+=dt;g.satisfaction=Math.min(100,g.satisfaction+dt*1.15);
+  if(g.wait>=g.poolDuration){g.state="leaving";g.room.occupied=false;g.room.dirty=true;setDirty(g.room);}
  }else if(g.state==="leaving"){
   moveToward(g.obj,{x:0,z:15},dt,2.5);
   if(g.obj.position.z>14){
@@ -302,7 +316,7 @@ guests.forEach(g=>{
 if(cleaners>0&&elapsed%5<dt){let r=roomDefs.find(r=>r.dirty);if(r){r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=8;toast("Limpieza automática · +$8");}}
 if(elapsed>guestTimer){spawnGuest();guestTimer=elapsed+Math.max(5,12-staff);}
 if(elapsed>8&&Math.floor(elapsed)%15===0&&Math.floor(elapsed- dt)!==Math.floor(elapsed)){cash+=5;toast("Ingresos del hotel +$5");}
-player.position.y=Math.abs(Math.sin(now*.008))*.035;animateAvatar(player,!!(dx||dz),elapsed);guests.forEach(g=>{if(g.obj){g.obj.position.y=Math.abs(Math.sin(now*.006+g.wait))*.025;animateAvatar(g.obj,["reception","toRoom","leaving"].includes(g.state),elapsed);}});
+player.position.y=Math.abs(Math.sin(now*.008))*.035;animateAvatar(player,!!(dx||dz),elapsed);guests.forEach(g=>{if(g.obj){g.obj.position.y=Math.abs(Math.sin(now*.006+g.wait))*.025;animateAvatar(g.obj,["reception","toRoom","toPool","leaving"].includes(g.state),elapsed);if(g.state==="pool"&&g.obj.userData.rig){const rig=g.obj.userData.rig;rig.head.rotation.z=Math.sin(elapsed*1.2+rig.phase)*.035;rig.arms[0].rotation.x=-.22+Math.sin(elapsed*1.5+rig.phase)*.08;rig.arms[1].rotation.x=-.22-Math.sin(elapsed*1.5+rig.phase)*.08;}}});
 if(elapsed-lastHud>1){lastHud=elapsed;updateHUD();}renderer.render(scene,camera);}
 function createTouchControls(){
  if(!("ontouchstart" in window)||window.innerWidth>900)return;
