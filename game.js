@@ -91,29 +91,59 @@ roomDefs.forEach(r=>{const marker=box(2.6,.035,2,mats.grass2,r.x,.52,r.z);marker
 const player=new T.Group();scene.add(player);player.position.set(0,0,8);
 const avatarSettings={skin:0xf0bd91,shirt:0x286e75,pants:0x354b59,hair:0x493a31,style:"short"};
 function buildAvatar(root,config=avatarSettings){
- root.clear();const skin=mat(config.skin),shirt=mat(config.shirt),pants=mat(config.pants),shoe=mat(0x473b35),hairMat=mat(config.hair);
- cylinder(.29,.34,.72,shirt,0,.72,0,root);sphere(.25,skin,0,1.27,0,root);
- const cap=sphere(.255,hairMat,0,1.47,-.04,root);
- if(config.style==="long"){cap.scale.set(1.05,.68,1.12);box(.12,.38,.22,hairMat,-.2,1.17,-.02,root);box(.12,.38,.22,hairMat,.2,1.17,-.02,root);}
- else if(config.style==="curly"){for(let n=0;n<7;n++){let a=n*Math.PI*2/7;sphere(.12,hairMat,Math.cos(a)*.2,1.49,Math.sin(a)*.18,root);}}
- else cap.scale.set(1,.48,1);
+ root.clear();root.userData.rig=null;
+ const skin=mat(config.skin),shirt=mat(config.shirt),pants=mat(config.pants),shoe=mat(config.shoes||0x473b35),hairMat=mat(config.hair),dark=mat(0x26343b),white=mat(0xffffff);
+ // Silueta caricaturesca con articulaciones independientes para caminar.
+ cylinder(.29,.34,.72,shirt,0,.72,0,root);
+ const neck=cylinder(.09,.1,.16,skin,0,1.12,0,root);
+ const head=new T.Group();head.position.set(0,1.29,0);root.add(head);
+ sphere(.255,skin,0,0,0,head);
+ sphere(.258,hairMat,0,.18,-.035,head).scale.set(1,.48,1.04);
+ if(config.style==="long"){
+  box(.13,.43,.22,hairMat,-.21,-.08,-.015,head);box(.13,.43,.22,hairMat,.21,-.08,-.015,head);
+ }else if(config.style==="curly"){
+  for(let n=0;n<9;n++){const a=n*Math.PI*2/9;sphere(.105,hairMat,Math.cos(a)*.19,.18,Math.sin(a)*.16-.025,head);}
+ }
+ // Cara visible desde el frente: ojos, cejas, nariz y sonrisa.
  for(const side of [-1,1]){
-  let arm=cylinder(.085,.095,.48,shirt,side*.34,.76,0,root);arm.rotation.z=side*-.22;
-  cylinder(.09,.09,.43,pants,side*.13,.23,0,root);box(.19,.1,.3,shoe,side*.13,.045,.03,root);
-  sphere(.035,mat(0x26343b),side*.09,1.29,.22,root);
+  sphere(.047,white,side*.092,.015,.218,head);sphere(.022,dark,side*.092,.015,.255,head);
+  const brow=box(.085,.025,.025,hairMat,side*.092,.095,.22,head);brow.rotation.z=side*-.12;
+ }
+ sphere(.035,skin,0,-.045,.25,head);
+ const smile=new T.Mesh(new T.TorusGeometry(.065,.012,5,14,Math.PI),mat(0x8b4d4b));smile.position.set(0,-.105,.224);smile.rotation.z=Math.PI;head.add(smile);
+ const arms=[],legs=[];
+ for(const side of [-1,1]){
+  const arm=new T.Group();arm.position.set(side*.34,.99,0);root.add(arm);
+  cylinder(.09,.085,.43,shirt,0,-.22,0,arm);sphere(.085,skin,0,-.47,.015,arm);arms.push(arm);
+  const leg=new T.Group();leg.position.set(side*.14,.42,0);root.add(leg);
+  cylinder(.095,.09,.39,pants,0,-.2,0,leg);box(.2,.11,.31,shoe,0,-.42,.075,leg);legs.push(leg);
  }
  if(config.badge){box(.12,.16,.035,mat(0xf4bd59),.12,.91,.3,root);}
+ if(config.accessory==="glasses"){
+  for(const side of [-1,1]){const ring=new T.Mesh(new T.TorusGeometry(.065,.012,5,14),mat(0x344b55));ring.position.set(side*.092,.02,.235);head.add(ring);}
+  box(.08,.018,.018,mat(0x344b55),0,.02,.235,head);
+ }else if(config.accessory==="cap"){
+  const brim=box(.38,.045,.22,hairMat,0,.17,.16,head);brim.rotation.x=-.08;
+ }
+ root.userData.rig={arms,legs,head,phase:Math.random()*Math.PI*2};
+}
+function animateAvatar(root,moving,time){
+ const rig=root.userData.rig;if(!rig)return;
+ const swing=moving?Math.sin(time*11+rig.phase)*.62:Math.sin(time*2+rig.phase)*.035;
+ rig.legs[0].rotation.x=swing;rig.legs[1].rotation.x=-swing;
+ rig.arms[0].rotation.x=-swing*.78;rig.arms[1].rotation.x=swing*.78;
+ rig.head.rotation.z=moving?Math.sin(time*5+rig.phase)*.025:Math.sin(time*1.5+rig.phase)*.018;
 }
 buildAvatar(player);
 const guests=[];let cash=50,received=0,cleaned=0,staff=0,roomLevel=1,paused=false,zoom=1,activeTask=null,toastTimer=0,day=1,guestTimer=2,machineUnlocked=false,lastSave=0,lastHud=0;
 const keyMap={up:"w",down:"s",left:"a",right:"d",interact:"e"};
 let waitingForKey=null;
 const avatarPresets=[
- {name:"Recepcionista",shirt:0x286e75,hair:0x493a31,skin:0xf0bd91,style:"short"},
- {name:"Resort azul",shirt:0x477fb6,hair:0x2b2524,skin:0xd99b70,style:"curly"},
+ {name:"Recepcionista",shirt:0x286e75,hair:0x493a31,skin:0xf0bd91,style:"short",accessory:"glasses"},
+ {name:"Resort azul",shirt:0x477fb6,hair:0x2b2524,skin:0xd99b70,style:"curly",accessory:"cap"},
  {name:"Verano coral",shirt:0xd87567,hair:0x9a6540,skin:0xffd3ad,style:"long"},
- {name:"Jardín",shirt:0x57936e,hair:0x211b19,skin:0x9b6548,style:"short"},
- {name:"Lujo violeta",shirt:0x8a6caa,hair:0x76503b,skin:0xf2c5a2,style:"curly"}
+ {name:"Jardín",shirt:0x57936e,hair:0x211b19,skin:0x9b6548,style:"short",accessory:"cap"},
+ {name:"Lujo violeta",shirt:0x8a6caa,hair:0x76503b,skin:0xf2c5a2,style:"curly",accessory:"glasses"}
 ];
 let selectedAvatar=0,selectedHotelColor=0xd87958;
 const guestLooks=[
@@ -173,7 +203,7 @@ guests.forEach(g=>{if(g.state==="reception"){let target={x:0,z:5.6};moveToward(g
 if(staff>0&&elapsed%3<dt){let r=roomDefs.find(r=>r.dirty);if(r){r.dirty=false;cleaned++;if(r.stain){hotel.remove(r.stain);r.stain=null;}cash+=8;}}
 if(elapsed>guestTimer){spawnGuest();guestTimer=elapsed+Math.max(5,12-staff);}
 if(elapsed>8&&Math.floor(elapsed)%15===0&&Math.floor(elapsed- dt)!==Math.floor(elapsed)){cash+=5;toast("Ingresos del hotel +$5");}
-player.position.y=Math.abs(Math.sin(now*.008))*.035;guests.forEach(g=>{if(g.obj)g.obj.position.y=Math.abs(Math.sin(now*.006+g.wait))*.025;});
+player.position.y=Math.abs(Math.sin(now*.008))*.035;animateAvatar(player,!!(dx||dz),elapsed);guests.forEach(g=>{if(g.obj){g.obj.position.y=Math.abs(Math.sin(now*.006+g.wait))*.025;animateAvatar(g.obj,["reception","toRoom","leaving"].includes(g.state),elapsed);}});
 if(elapsed-lastHud>1){lastHud=elapsed;updateHUD();}renderer.render(scene,camera);}
 function createTouchControls(){
  if(!("ontouchstart" in window)||window.innerWidth>900)return;
